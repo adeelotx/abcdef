@@ -2,6 +2,8 @@ var express = require('express');
 var app = express();
 var task_code = '';
 var ToAddress = '';
+var FromAddress = '';
+var PrivateKey = '';
 var NoToken = '';
 var secret      = '';
 var toAddress   = '';
@@ -479,8 +481,7 @@ var abi = [
 var abiArray = abi;
 var contractAddress = "0x1854ab055cc2c6a033ca4e0f51ce2d9f1003cd13";
 var contract =  web3.eth.contract(abiArray).at(contractAddress);
-web3.eth.defaultAccount ="0x7e36015Cf15e1b85c65451E0a9ff280b9409E17A";
-var count = web3.eth.getTransactionCount("0x7e36015Cf15e1b85c65451E0a9ff280b9409E17A");
+
 
 
 
@@ -490,8 +491,10 @@ app.get('/add', function (req, res) {
   
   task_code = req.query.task;
   ToAddress = req.query.ToAddress;
+  FromAddress = req.query.FromAddress;
+  PrivateKey = req.query.PrivateKey;
   NoToken = req.query.NoToken;
-  fromAddress = req.query.fromAddress_url;
+  
   secret = req.query.secret_url;
   toAddress = req.query.toAddress_url;
   amount = req.query.amount_url;
@@ -502,7 +505,7 @@ app.get('/add', function (req, res) {
       getAddress(res);
     }
     if(task_code == "2"){
-      TokenTransfer(res,ToAddress,NoToken);
+      TokenTransfer(res,ToAddress,NoToken,FromAddress,PrivateKey);
     }
      
 });
@@ -515,7 +518,9 @@ console.log("create");
   res.end(JSON.stringify(account.create()));
 }
 
-function TokenTransfer(res,ToAddress,NoToken){
+function TokenTransfer(res,ToAddress,NoToken,FromAddress,PrivateKey){
+  web3.eth.defaultAccount = FromAddress;
+var count = web3.eth.getTransactionCount(web3.eth.defaultAccount);
   console.log(ToAddress);
   console.log(NoToken);
 var data = contract.transfer.getData(ToAddress, NoToken);
@@ -523,7 +528,7 @@ var gasPrice = web3.eth.gasPrice;
 var gasLimit = 90000;
 
 var rawTransaction = {
-  "from": "0x7e36015Cf15e1b85c65451E0a9ff280b9409E17A",
+  "from": FromAddress,
   "nonce": web3.toHex(count),
   "gasPrice": web3.toHex(gasPrice),
   "gasLimit": web3.toHex(gasLimit),
@@ -532,7 +537,7 @@ var rawTransaction = {
   "chainId": 0x03
 };
 
-var privKey = new Buffer('d2e8584f89ddf7995555878d428a1d210ef829b63501e80576a69cf25fc87042', 'hex');
+var privKey = new Buffer(PrivateKey, 'hex');
 var tx = new Tx(rawTransaction);
 
 tx.sign(privKey);
