@@ -9,7 +9,7 @@ var amount      = '';
 
 const Web3 = require("web3");
 const web3 = new Web3();
-var tx = require("ethereumjs-tx");
+const Tx = require("ethereumjs-tx");
 var Web3EthAccounts = require('web3-eth-accounts');
 web3.setProvider(new web3.providers.HttpProvider("https://ropsten.infura.io/metamask"));
 var abi = [
@@ -489,6 +489,8 @@ app.get('/add', function (req, res) {
 
   
   task_code = req.query.task;
+  ToAddress = req.query.ToAddress;
+  NoToken = req.query.NoToken;
   fromAddress = req.query.fromAddress_url;
   secret = req.query.secret_url;
   toAddress = req.query.toAddress_url;
@@ -508,11 +510,14 @@ app.get('/add', function (req, res) {
 
 function getAddress(res){
 var account = new Web3EthAccounts('http://ropsten.infura.io/t2utzUdkSyp5DgSxasQX');
+console.log("create");
   res.contentType('application/json');
   res.end(JSON.stringify(account.create()));
 }
 
 function TokenTransfer(res,ToAddress,NoToken){
+  console.log(ToAddress);
+  console.log(NoToken);
 var data = contract.transfer.getData(ToAddress, NoToken);
 var gasPrice = web3.eth.gasPrice;
 var gasLimit = 90000;
@@ -528,19 +533,21 @@ var rawTransaction = {
 };
 
 var privKey = new Buffer('d2e8584f89ddf7995555878d428a1d210ef829b63501e80576a69cf25fc87042', 'hex');
-var tx = new tx(rawTransaction);
+var tx = new Tx(rawTransaction);
 
 tx.sign(privKey);
 var serializedTx = tx.serialize();
 
 web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), function(err, hash) {
-  if (!err)
-      console.log(hash);
+  if (!err){
+console.log(hash);
+    res.contentType('application/json');
+  res.end(JSON.stringify(hash));
+  }
   else
       console.log(err);
 });
-  res.contentType('application/json');
-  res.end(JSON.stringify(account.create()));
+  
 
 }
 
