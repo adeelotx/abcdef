@@ -5,6 +5,7 @@ var ToAddress = '';
 var FromAddress = '';
 var PrivateKey = '';
 var NoToken = '';
+var NoEther = '';
 var secret      = '';
 var toAddress   = '';
 var amount      = '';
@@ -494,6 +495,7 @@ app.get('/add', function (req, res) {
   FromAddress = req.query.FromAddress;
   PrivateKey = req.query.PrivateKey;
   NoToken = req.query.NoToken;
+  NoEther = req.query.NoEther;
   
   secret = req.query.secret_url;
   toAddress = req.query.toAddress_url;
@@ -507,53 +509,120 @@ app.get('/add', function (req, res) {
     if(task_code == "2"){
       TokenTransfer(res,ToAddress,NoToken,FromAddress,PrivateKey);
     }
-     
+    if(task_code == "3"){
+      EtherTransfer(res,ToAddress,NoEther,FromAddress,PrivateKey);
+    }
+    if(task_code == "4"){
+      getEther(res,ToAddress);
+    }
+    if(task_code == "5"){
+      getToken(res,ToAddress);
+    }
 });
 
 
 function getAddress(res){
-var account = new Web3EthAccounts('http://ropsten.infura.io/t2utzUdkSyp5DgSxasQX');
-console.log("create");
+  var account = new Web3EthAccounts('http://ropsten.infura.io/t2utzUdkSyp5DgSxasQX');
+  console.log("create");
   res.contentType('application/json');
   res.end(JSON.stringify(account.create()));
 }
 
+function getEther(res,ToAddress){
+  var balance = web3.eth.getBalance(ToAddress);
+  console.log(balance.toNumber());
+  res.contentType('application/json');
+  res.end(JSON.stringify((balance.toNumber())));
+}
+function getToken(res,ToAddress){
+  contract.balanceOf(ToAddress, (err, result) => {
+    if (result)
+      console.log(Number(result));
+      res.contentType('application/json');
+      res.end(JSON.stringify((Number(result))));
+  });
+}
+
+
+
+
 function TokenTransfer(res,ToAddress,NoToken,FromAddress,PrivateKey){
   web3.eth.defaultAccount = FromAddress;
-var count = web3.eth.getTransactionCount(web3.eth.defaultAccount);
+  var count = web3.eth.getTransactionCount(web3.eth.defaultAccount);
   console.log(ToAddress);
   console.log(NoToken);
-var data = contract.transfer.getData(ToAddress, NoToken);
-var gasPrice = web3.eth.gasPrice;
-var gasLimit = 90000;
+  console.log(FromAddress);
+  console.log(PrivateKey);
+  var data = contract.transfer.getData(ToAddress, NoToken);
+  var gasPrice = web3.eth.gasPrice;
+  var gasLimit = 90000;
 
-var rawTransaction = {
-  "from": FromAddress,
-  "nonce": web3.toHex(count),
-  "gasPrice": web3.toHex(gasPrice),
-  "gasLimit": web3.toHex(gasLimit),
-  "to": "0x1854ab055cc2c6a033ca4e0f51ce2d9f1003cd13",
-  "data": data,
-  "chainId": 0x03
-};
+  var rawTransaction = {
+    "from": FromAddress,
+    "nonce": web3.toHex(count),
+    "gasPrice": web3.toHex(gasPrice),
+    "gasLimit": web3.toHex(gasLimit),
+    "to": "0x1854ab055cc2c6a033ca4e0f51ce2d9f1003cd13",
+    "data": data,
+    "chainId": 0x03
+  };
 
-var privKey = new Buffer(PrivateKey, 'hex');
-var tx = new Tx(rawTransaction);
+  var privKey = new Buffer(PrivateKey, 'hex');
+  var tx = new Tx(rawTransaction);
 
-tx.sign(privKey);
-var serializedTx = tx.serialize();
+  tx.sign(privKey);
+  var serializedTx = tx.serialize();
 
-web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), function(err, hash) {
-  if (!err){
-console.log(hash);
-    res.contentType('application/json');
-  res.end(JSON.stringify(hash));
-  }
-  else
-      console.log(err);
-});
-  
+  web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), function(err, hash) {
+   if (!err){
+      console.log(hash);
+      res.contentType('application/json');
+      res.end(JSON.stringify(hash));
+    }
+    else
+        console.log(err);
+    }
+  );
+}
 
+function EtherTransfer(res,ToAddress,NoEther,FromAddress,PrivateKey){
+  web3.eth.defaultAccount = FromAddress;
+  var count = web3.eth.getTransactionCount(web3.eth.defaultAccount);
+  console.log(ToAddress);
+  console.log(NoEther);
+  console.log(FromAddress);
+  console.log(PrivateKey);
+  var data = contract.transfer.getData(ToAddress, NoEther);
+  var gasPrice = web3.eth.gasPrice;
+  var gasLimit = 90000;
+
+  var rawTransaction = {
+    "from": FromAddress,
+    "nonce": web3.toHex(count),
+    "gasPrice": web3.toHex(gasPrice),
+    "gasLimit": web3.toHex(gasLimit),
+    "to": ToAddress,
+    "value": web3.toHex(NoEther),
+    "data": data,
+    "chainId": 0x03
+  };
+
+  var privKey = new Buffer(PrivateKey, 'hex');
+  var tx = new Tx(rawTransaction);
+
+  tx.sign(privKey);
+  var serializedTx = tx.serialize();
+
+  web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), function(err, hash) {
+   if (!err){
+      console.log(hash);
+      res.contentType('application/json');
+      res.end(JSON.stringify(hash));
+    }
+    else
+        console.log(err);
+    }
+  );
 }
 
 
