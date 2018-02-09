@@ -3,6 +3,7 @@ var app = express();
 var task_code = '';
 var ToAddress = '';
 var FromAddress = '';
+var ContractAddress = '';
 var PrivateKey = '';
 var NoToken = '';
 var NoEther = '';
@@ -30,6 +31,7 @@ app.get('/add', function (req, res) {
   task_code = req.query.task;
   ToAddress = req.query.ToAddress;
   FromAddress = req.query.FromAddress;
+  ContractAddress = req.query.ContractAddress;
   PrivateKey = req.query.PrivateKey;
   NoToken = req.query.NoToken;
   NoEther = req.query.NoEther;
@@ -61,12 +63,44 @@ app.get('/add', function (req, res) {
     if(task_code == "buyPrice"){
       buyPrice(res);
     }
+    if(task_code == "seeToken"){
+      seeToken(res,ContractAddress);
+    }
+    if(task_code == "showToken"){
+      showToken(res,ToAddress,ContractAddress);
+    }
 
     if(task_code == "buy"){
       BuyToken(res,NoEther,FromAddress,PrivateKey);
     }
+    //EtherTransfer(res,0xE1Dd22A79A6A9d10656060088eAB1835728dAfEB,1000000000000000000,0xe49D89Cee512A852eBDe6Ba3c4869dF20b599ccf,97f284e5f17739c388237eb70b2b90ed4a676548112c3be4319e5c0e5c9b6edd);
 });
 
+function seeToken(res,ContractAddress){
+  var abiArray = abi;
+  var contractAddress = ContractAddress;
+  var token={};
+  var tokenContract = web3.eth.contract(abiArray).at(contractAddress);
+  token.Decimal = tokenContract.decimals();
+  console.log(token['Decimal']);
+  token.Name = tokenContract.name();
+  console.log(token['Name']);
+  token.Symbol = tokenContract.symbol();
+  console.log(token['Symbol']);
+
+  res.contentType('application/json');
+  res.end(JSON.stringify(token));
+}
+function showToken(res,ToAddress,ContractAddress){
+  var abiArray = abi;
+  var contractAddress = ContractAddress;
+  var address = ToAddress;
+  var tokenContract = web3.eth.contract(abiArray).at(contractAddress);
+  var balance = tokenContract.balanceOf(address);
+  console.log(balance);
+  res.contentType('application/json');
+  res.end(JSON.stringify(balance));
+}
 
 function Create(res){
   var account = new Web3EthAccounts('http://ropsten.infura.io/t2utzUdkSyp5DgSxasQX');
@@ -152,7 +186,10 @@ function EtherTransfer(res,ToAddress,NoEther,FromAddress,PrivateKey){
   var data = contract.transfer.getData(ToAddress, NoEther);
   var gasPrice = web3.eth.gasPrice;
   var gasLimit = 90000;
-
+  
+  console.log("......");
+  console.log(gasPrice);
+  
   var rawTransaction = {
     "from": FromAddress,
     "nonce": web3.toHex(count),
