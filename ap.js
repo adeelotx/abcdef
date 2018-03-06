@@ -25,7 +25,7 @@ var abiArray = abi;
 var contractAddress = "0x1c713ed5ccf0f2d1964e2e1bed7cc6a4bccacd7b"; //For mainnet have to deploy new one.
 //Make a variable to access contract's function
 var contract =  web3.eth.contract(abiArray).at(contractAddress);
-app.get('/add', function (req, res) {
+app.get('/', function (req, res) {
 //To specify what to do and run that function.
     task_code = req.query.task;
     ToAddress = req.query.ToAddress;
@@ -36,28 +36,39 @@ app.get('/add', function (req, res) {
 
     if(task_code == "Create"){
         Create(res);
+    }else{
+        if(task_code == "TokenTransfer"){
+            TokenTransfer(res,ToAddress,NoToken,FromAddress,PrivateKey);
+        }else{
+            if(task_code == "EtherTransfer"){
+                EtherTransfer(res,ToAddress,NoEther,FromAddress,PrivateKey);
+            }else{
+                if(task_code == "getEther"){
+                    getEther(res,ToAddress);
+                }else{
+                    if(task_code == "getToken"){
+                        getToken(res,ToAddress);
+                    }else{
+                        if(task_code == "sellPrice"){
+                            sellPrice(res);
+                        }else{
+                            if(task_code == "buyPrice"){
+                                buyPrice(res);
+                            }else{
+                                if(task_code == "buy"){
+                                    BuyToken(res,NoEther,FromAddress,PrivateKey);
+                                }else{
+                                    res.contentType('application/json');
+                                    res.end(JSON.stringify("EBanker node is ready..."));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
-    if(task_code == "TokenTransfer"){
-        TokenTransfer(res,ToAddress,NoToken,FromAddress,PrivateKey);
-    }
-    if(task_code == "EtherTransfer"){
-        EtherTransfer(res,ToAddress,NoEther,FromAddress,PrivateKey);
-    }
-    if(task_code == "getEther"){
-        getEther(res,ToAddress);
-    }
-    if(task_code == "getToken"){
-        getToken(res,ToAddress);
-    }
-    if(task_code == "sellPrice"){
-        sellPrice(res);
-    }
-    if(task_code == "buyPrice"){
-        buyPrice(res);
-    }
-    if(task_code == "buy"){
-        BuyToken(res,NoEther,FromAddress,PrivateKey);
-    }
+    
 });
 
 //Create a acount and return address and private-key.
