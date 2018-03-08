@@ -8,6 +8,9 @@ var ContractAddress = '';
 var PrivateKey = '';
 var NoToken = '';
 var NoEther = '';
+var sellPrice = '';
+var buyPrice = '';
+
 //This module standard library for Ethereum Network.
 const Web3 = require("web3");
 const web3 = new Web3();
@@ -33,6 +36,8 @@ app.get('/', function (req, res) {
     PrivateKey = req.query.PrivateKey;
     NoToken = req.query.NoToken;
     NoEther = req.query.NoEther;
+    sellPrice = req.query.sellPrice;
+    buyPrice = req.query.buyPrice;
 
     if(task_code == "Create"){
         Create(res);
@@ -58,9 +63,12 @@ app.get('/', function (req, res) {
                                 if(task_code == "buy"){
                                     BuyToken(res,NoEther,FromAddress,PrivateKey);
                                 }else{
-                                    res.contentType('application/json');
-                                    res.end(JSON.stringify("EBanker node is ready..."));
-                                }
+                                    if(task_code == "setPrices"){
+                                        setPrices(res,sellPrice,buyPrice,FromAddress,PrivateKey);
+                                    }else{
+                                        res.contentType('application/json');
+                                        res.end(JSON.stringify("EBanker node is ready..."));
+                                    }                                }
                             }
                         }
                     }
@@ -68,7 +76,6 @@ app.get('/', function (req, res) {
             }
         }
     }
-    
 });
 
 //Create a acount and return address and private-key.
@@ -122,6 +129,50 @@ function buyPrice(res){
         }
   });
 }
+//Set token sell and buy Prices for the contract address provided above
+function setPrices(res,sellPrice,buyPrice,FromAddress,PrivateKey){
+    web3.eth.defaultAccount = FromAddress;
+    var count = web3.eth.getTransactionCount(web3.eth.defaultAccount);
+    console.log(sellPrice);
+    console.log(buyPrice);
+    console.log(FromAddress);
+    console.log(PrivateKey);
+    var data = contract.setPrices.getData(sellPrice, buyPrice);
+    var gasPrice = web3.eth.gasPrice;
+    var gasLimit = 90000;
+
+    var rawTransaction = {
+        "from": FromAddress,
+        "nonce": web3.toHex(count),
+        "gasPrice": web3.toHex(gasPrice),
+        "gasLimit": web3.toHex(gasLimit),
+        "to": contractAddress,
+        "data": data,
+        "chainId": 0x03
+    };
+
+    var privKey = new Buffer(PrivateKey, 'hex');
+    var tx = new Tx(rawTransaction);
+
+    tx.sign(privKey);
+    var serializedTx = tx.serialize();
+
+    web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), function(err, hash) {
+        if (!err){
+            console.log(hash);
+            res.contentType('application/json');
+            res.end(JSON.stringify(hash));
+        }
+        else
+            console.log(err);
+        }
+    );
+}
+
+
+
+
+
 //Transfer "NoToken" token of the contract address provided above form "FromAddress" to "ToAddress" .
 function TokenTransfer(res,ToAddress,NoToken,FromAddress,PrivateKey){
     web3.eth.defaultAccount = FromAddress;
