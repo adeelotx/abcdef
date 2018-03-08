@@ -94,12 +94,12 @@ function getEther(res,ToAddress){
 function getToken(res,ToAddress){
     contract.balanceOf(ToAddress, (err, result) => {
         if (!err){
-            console.log(result);
+            //console.log(result);
             res.contentType('application/json');
             res.end(JSON.stringify((Number(result))));
         }
         else{
-            console.log(err);
+            //console.log(err);
         }
     });
 }
@@ -107,12 +107,12 @@ function getToken(res,ToAddress){
 function sellPrice(res){
     contract.sellPrice((err, result) => {
         if (!err){
-            console.log(result);
+            //console.log(result);
             res.contentType('application/json');
             res.end(JSON.stringify((Number(result))));
         }
         else{
-            console.log(err);
+            //console.log(err);
         }
     });
 }
@@ -120,12 +120,12 @@ function sellPrice(res){
 function buyPrice(res){
     contract.buyPrice((err, result) => {
         if (!err){
-            console.log(result);
+            //console.log(result);
             res.contentType('application/json');
             res.end(JSON.stringify((Number(result))));
         }
         else{
-            console.log(err);
+            //console.log(err);
         }
   });
 }
@@ -133,10 +133,6 @@ function buyPrice(res){
 function setPrices(res,sellPrice,buyPrice,FromAddress,PrivateKey){
     web3.eth.defaultAccount = FromAddress;
     var count = web3.eth.getTransactionCount(web3.eth.defaultAccount);
-    console.log(sellPrice);
-    console.log(buyPrice);
-    console.log(FromAddress);
-    console.log(PrivateKey);
     var data = contract.setPrices.getData(sellPrice, buyPrice);
     var gasPrice = web3.eth.gasPrice;
     var gasLimit = 90000;
@@ -159,12 +155,13 @@ function setPrices(res,sellPrice,buyPrice,FromAddress,PrivateKey){
 
     web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), function(err, hash) {
         if (!err){
-            console.log(hash);
+            //console.log(hash);
             res.contentType('application/json');
             res.end(JSON.stringify(hash));
         }
-        else
-            console.log(err);
+        else{
+            //console.log(err);
+        }
         }
     );
 }
@@ -197,12 +194,13 @@ function TokenTransfer(res,ToAddress,NoToken,FromAddress,PrivateKey){
 
     web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), function(err, hash) {
         if (!err){
-            console.log(hash);
+            //console.log(hash);
             res.contentType('application/json');
             res.end(JSON.stringify(hash));
         }
-        else
-            console.log(err);
+        else{
+            //console.log(err);
+        }
         }
     );
 }
@@ -210,10 +208,6 @@ function TokenTransfer(res,ToAddress,NoToken,FromAddress,PrivateKey){
 function EtherTransfer(res,ToAddress,NoEther,FromAddress,PrivateKey){
     web3.eth.defaultAccount = FromAddress;
     var count = web3.eth.getTransactionCount(web3.eth.defaultAccount);
-    console.log(ToAddress);
-    console.log(NoEther);
-    console.log(FromAddress);
-    console.log(PrivateKey);
     var data = contract.transfer.getData(ToAddress, NoEther);
     var gasPrice = web3.eth.gasPrice;
     var gasLimit = 90000;
@@ -237,12 +231,13 @@ function EtherTransfer(res,ToAddress,NoEther,FromAddress,PrivateKey){
 
     web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), function(err, hash) {
         if (!err){
-            console.log(hash);
+            //console.log(hash);
             res.contentType('application/json');
             res.end(JSON.stringify(hash));
         }
-        else
-            console.log(err);
+        else{
+            //console.log(err);
+        }
         }
     );
 }
@@ -250,9 +245,6 @@ function EtherTransfer(res,ToAddress,NoEther,FromAddress,PrivateKey){
 function BuyToken(res,NoEther,FromAddress,PrivateKey){
     web3.eth.defaultAccount = FromAddress;
     var count = web3.eth.getTransactionCount(web3.eth.defaultAccount);
-    console.log(NoEther);
-    console.log(FromAddress);
-    console.log(PrivateKey);
     var data = contract.buy.getData();
     var gasPrice = web3.eth.gasPrice;
     var gasLimit = 90000;
@@ -276,12 +268,12 @@ function BuyToken(res,NoEther,FromAddress,PrivateKey){
 
     web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), function(err, hash) {
         if (!err){
-            console.log(hash);
             res.contentType('application/json');
             res.end(JSON.stringify(hash));
         }
-        else
-            console.log(err);
+        else{
+            //console.log(err);
+        }
         }
     );
 }
