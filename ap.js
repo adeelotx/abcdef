@@ -8,8 +8,8 @@ var ContractAddress = '';
 var PrivateKey = '';
 var NoToken = '';
 var NoEther = '';
-var sellPrice = '';
-var buyPrice = '';
+var newSellPrice = '';
+var newBuyPrice = '';
 
 //This module standard library for Ethereum Network.
 const Web3 = require("web3");
@@ -36,8 +36,8 @@ app.get('/', function (req, res) {
     PrivateKey = req.query.PrivateKey;
     NoToken = req.query.NoToken;
     NoEther = req.query.NoEther;
-    sellPrice = req.query.sellPrice;
-    buyPrice = req.query.buyPrice;
+    newSellPrice = req.query.newSellPrice;
+    newBuyPrice = req.query.newBuyPrice;
 
     if(task_code == "Create"){
         Create(res);
@@ -64,7 +64,7 @@ app.get('/', function (req, res) {
                                     BuyToken(res,NoEther,FromAddress,PrivateKey);
                                 }else{
                                     if(task_code == "setPrices"){
-                                        setPrices(res,sellPrice,buyPrice,FromAddress,PrivateKey);
+                                        setPrices(res,newSellPrice,newBuyPrice,FromAddress,PrivateKey);
                                     }else{
                                         res.contentType('application/json');
                                         res.end(JSON.stringify("EBanker node is ready..."));
@@ -130,10 +130,10 @@ function buyPrice(res){
   });
 }
 //Set token sell and buy Prices for the contract address provided above
-function setPrices(res,sellPrice,buyPrice,FromAddress,PrivateKey){
+function setPrices(res,newSellPrice,newBuyPrice,FromAddress,PrivateKey){
     web3.eth.defaultAccount = FromAddress;
     var count = web3.eth.getTransactionCount(web3.eth.defaultAccount);
-    var data = contract.setPrices.getData(sellPrice, buyPrice);
+    var data = contract.setPrices.getData(newSellPrice, newBuyPrice);
     var gasPrice = web3.eth.gasPrice;
     var gasLimit = 90000;
 
