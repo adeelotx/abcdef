@@ -1,4 +1,3 @@
-//This module help to listen request
 var express = require('express');
 var app = express();
 var task_code = '';
@@ -8,24 +7,13 @@ var ContractAddress = '';
 var PrivateKey = '';
 var NoToken = '';
 var NoEther = '';
-var newSellPrice = '';
-var newBuyPrice = '';
-var ParentAddress = '';
-var Percent = '';
 
-
-//This module standard library for Ethereum Network.
 const Web3 = require("web3");
 const web3 = new Web3();
-//This module library for Ethereum Transaction.
 const Tx = require("ethereumjs-tx");
-//This module library for Ethereum Accounts.
 var Web3EthAccounts = require('web3-eth-accounts');
-//Set Provider to make able to perform task on ethereum ROPSTEN TEST network. https:
-web3.setProvider(new web3.providers.HttpProvider("https://ropsten.infura.io/metamask"));
-//web3.setProvider(new web3.providers.HttpProvider("https://mainnet.infura.io/metamask")); //For mainnet
-//ABI of standard ERC20 token contract  from https://www.ethereum.org/token
-var abi = [
+web3.setProvider(new web3.providers.HttpProvider("https://mainnet.infura.io/SGphGVYXzTeGCaHojW7d"));
+var abi = var abi = [
     {
         "constant": true,
         "inputs": [],
@@ -507,29 +495,24 @@ var abi = [
         "type": "function"
     }
 ]
+
 var abiArray = abi;
-//Deployed contract address on Ropsten testnet
-var contractAddress = "0xbfcc7f95a6af67e131dfbdba4619cc3dc948e82a"; //For mainnet have to deploy new one.
-//Make a variable to access contract's function
-var contract =  web3.eth.contract(abiArray).at(contractAddress);
+
+
 app.get('/', function (req, res) {
-//To specify what to do and run that function.
     task_code = req.query.task;
     ToAddress = req.query.ToAddress;
     FromAddress = req.query.FromAddress;
     PrivateKey = req.query.PrivateKey;
     NoToken = req.query.NoToken;
-    NoEther = req.query.NoEther;
-    newSellPrice = req.query.newSellPrice;
-    newBuyPrice = req.query.newBuyPrice;
-    ParentAddress = req.query.ParentAddress;
-    Percent = req.query.Percent;
+    contractAddress = req.query.TokenCode;
+	NoEther = req.query.NoEther;
 
     if(task_code == "Create"){
         Create(res);
     }else{
         if(task_code == "TokenTransfer"){
-            TokenTransfer(res,ToAddress,NoToken,FromAddress,PrivateKey);
+            TokenTransfer(res,ToAddress,NoToken,FromAddress,PrivateKey,contractAddress);
         }else{
             if(task_code == "EtherTransfer"){
                 EtherTransfer(res,ToAddress,NoEther,FromAddress,PrivateKey);
@@ -538,30 +521,10 @@ app.get('/', function (req, res) {
                     getEther(res,ToAddress);
                 }else{
                     if(task_code == "getToken"){
-                        getToken(res,ToAddress);
+                        getToken(res,ToAddress,contractAddress);
                     }else{
-                        if(task_code == "sellPrice"){
-                            sellPrice(res);
-                        }else{
-                            if(task_code == "buyPrice"){
-                                buyPrice(res);
-                            }else{
-                                if(task_code == "buy"){
-                                    BuyToken(res,NoEther,FromAddress,PrivateKey);
-                                }else{
-                                    if(task_code == "buyrefer"){
-                                        BuyTokenRefer(res,NoEther,FromAddress,PrivateKey,ParentAddress,Percent);
-                                    }else{
-                                        if(task_code == "setPrices"){
-                                            setPrices(res,newSellPrice,newBuyPrice,FromAddress,PrivateKey);
-                                        }else{
-                                            res.contentType('application/json');
-                                            res.end(JSON.stringify("EBanker node is ready..."));
-                                        }                                
-                                    }
-                                }
-                            }
-                        }
+					res.contentType('application/json');
+                    res.end(JSON.stringify("Error"));
                     }
                 }
             }
@@ -569,105 +532,57 @@ app.get('/', function (req, res) {
     }
 });
 
-//Create a acount and return address and private-key.
 function Create(res){
-    var account = new Web3EthAccounts('http://ropsten.infura.io/t2utzUdkSyp5DgSxasQX');
+    var account = new Web3EthAccounts('https://mainnet.infura.io/SGphGVYXzTeGCaHojW7d');
+
     res.contentType('application/json');
     res.end(JSON.stringify(account.create()));
 }
-//Get balance(Ether) on this "ToAddress".
 function getEther(res,ToAddress){
     var balance = web3.eth.getBalance(ToAddress);
-    res.contentType('application/json');
-    res.end(JSON.stringify((balance.toNumber())));
+
+	
+	var response = {
+		    status  : 'success',
+		    balance : balance.toNumber()
+		}
+
+res.contentType('application/json');
+res.end(JSON.stringify(response));
+			
 }
-//Get number of token on "ToAddress" for the contract address and ABI provided above
-function getToken(res,ToAddress){
+function getToken(res,ToAddress ,contractAddress){
+	var contract =  web3.eth.contract(abiArray).at(contractAddress);
     contract.balanceOf(ToAddress, (err, result) => {
-        if (!err){
-            //console.log(result);
+		if (!err){
+		var response = {
+		    status  : 'success',
+		    balance : result
+		}
+
             res.contentType('application/json');
-            res.end(JSON.stringify((Number(result))));
+            res.end(JSON.stringify(response));
         }
         else{
-            //console.log(err);
+         var response = {
+		    status  : 'error',
+		    balance : err
+		}
+
+            res.contentType('application/json');
+            res.end(JSON.stringify(response));
         }
     });
 }
-//Get token sell Price for the contract address provided above
-function sellPrice(res){
-    contract.sellPrice((err, result) => {
-        if (!err){
-            //console.log(result);
-            res.contentType('application/json');
-            res.end(JSON.stringify((Number(result))));
-        }
-        else{
-            //console.log(err);
-        }
-    });
-}
-//Get token buy Price for the contract address provided above
-function buyPrice(res){
-    contract.buyPrice((err, result) => {
-        if (!err){
-            //console.log(result);
-            res.contentType('application/json');
-            res.end(JSON.stringify((Number(result))));
-        }
-        else{
-            //console.log(err);
-        }
-  });
-}
-//Set token sell and buy Prices for the contract address provided above
-function setPrices(res,newSellPrice,newBuyPrice,FromAddress,PrivateKey){
-    web3.eth.defaultAccount = FromAddress;
-    var count = web3.eth.getTransactionCount(web3.eth.defaultAccount);
-    var data = contract.setPrices.getData(newSellPrice, newBuyPrice);
-    var gasPrice = web3.eth.gasPrice;
-    var gasLimit = 90000;
 
-    var rawTransaction = {
-        "from": FromAddress,
-        "nonce": web3.toHex(count),
-        "gasPrice": web3.toHex(gasPrice),
-        "gasLimit": web3.toHex(gasLimit),
-        "to": contractAddress,
-        "data": data,
-        "chainId": 0x03
-    };
-
-    var privKey = new Buffer(PrivateKey, 'hex');
-    var tx = new Tx(rawTransaction);
-
-    tx.sign(privKey);
-    var serializedTx = tx.serialize();
-
-    web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), function(err, hash) {
-        if (!err){
-            //console.log(hash);
-            res.contentType('application/json');
-            res.end(JSON.stringify(hash));
-        }
-        else{
-            //console.log(err);
-        }
-        }
-    );
-}
-
-
-
-
-
-//Transfer "NoToken" token of the contract address provided above form "FromAddress" to "ToAddress" .
-function TokenTransfer(res,ToAddress,NoToken,FromAddress,PrivateKey){
+function TokenTransfer(res,ToAddress,NoToken,FromAddress,PrivateKey,contractAddress){
+	var contract =  web3.eth.contract(abiArray).at(contractAddress);
     web3.eth.defaultAccount = FromAddress;
     var count = web3.eth.getTransactionCount(web3.eth.defaultAccount);
     var data = contract.transfer.getData(ToAddress, NoToken);
     var gasPrice = web3.eth.gasPrice;
     var gasLimit = 90000;
+    
     var rawTransaction = {
         "from": FromAddress,
         "nonce": web3.toHex(count),
@@ -675,33 +590,42 @@ function TokenTransfer(res,ToAddress,NoToken,FromAddress,PrivateKey){
         "gasLimit": web3.toHex(gasLimit),
         "to": contractAddress,
         "data": data,
-        "chainId": 0x03
+        "chainId": 0x01
     };
-    var privKey = new Buffer(PrivateKey, 'hex');
+     var privKey = new Buffer(PrivateKey, 'hex');
     var tx = new Tx(rawTransaction);
 
     tx.sign(privKey);
     var serializedTx = tx.serialize();
+    
+ web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), function(err, hash) {
+     if (!err){
+		var response = {
+		    status  : 'success',
+		    transaction : hash
+		}
 
-    web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), function(err, hash) {
-        if (!err){
-            //console.log(hash);
             res.contentType('application/json');
-            res.end(JSON.stringify(hash));
+            res.end(JSON.stringify(response));
         }
         else{
-            //console.log(err);
+       
+
+            res.contentType('application/json');
+            res.end(JSON.stringify(err));
         }
         }
     );
+    
+    
+
 }
-//Transfer "NoEther" ether form "FromAddress" to "ToAddress" .
 function EtherTransfer(res,ToAddress,NoEther,FromAddress,PrivateKey){
     web3.eth.defaultAccount = FromAddress;
     var count = web3.eth.getTransactionCount(web3.eth.defaultAccount);
     var data = contract.transfer.getData(ToAddress, NoEther);
     var gasPrice = web3.eth.gasPrice;
-    var gasLimit = 90000;
+    var gasLimit = 900000;
 
     var rawTransaction = {
         "from": FromAddress,
@@ -711,7 +635,7 @@ function EtherTransfer(res,ToAddress,NoEther,FromAddress,PrivateKey){
         "to": ToAddress,
         "value": web3.toHex(NoEther),
         "data": data,
-        "chainId": 0x03
+        "chainId": 0x01
     };
 
     var privKey = new Buffer(PrivateKey, 'hex');
@@ -721,89 +645,28 @@ function EtherTransfer(res,ToAddress,NoEther,FromAddress,PrivateKey){
     var serializedTx = tx.serialize();
 
     web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), function(err, hash) {
-        if (!err){
-            //console.log(hash);
+if (!err){
+		var response = {
+		    status  : 'success',
+		    transaction : hash
+		}
+
             res.contentType('application/json');
-            res.end(JSON.stringify(hash));
+            res.end(JSON.stringify(response));
         }
         else{
-            //console.log(err);
+         var response = {
+		    status  : 'error',
+		    balance : err
+		}
+
+            res.contentType('application/json');
+            res.end(JSON.stringify(response));
         }
         }
     );
 }
-//Buy token of the contract address provided above by "NoEther" ether form "FromAddress".
-function BuyToken(res,NoEther,FromAddress,PrivateKey){
-    web3.eth.defaultAccount = FromAddress;
-    var count = web3.eth.getTransactionCount(web3.eth.defaultAccount);
-    var data = contract.buy.getData();
-    var gasPrice = web3.eth.gasPrice;
-    var gasLimit = 90000;
 
-    var rawTransaction = {
-        "from": FromAddress,
-        "nonce": web3.toHex(count),
-        "gasPrice": web3.toHex(gasPrice),
-        "gasLimit": web3.toHex(gasLimit),
-        "to": contractAddress,
-        "value": web3.toHex(NoEther),
-        "data": data,
-        "chainId": 0x03
-    };
-
-    var privKey = new Buffer(PrivateKey, 'hex');
-    var tx = new Tx(rawTransaction);
-
-    tx.sign(privKey);
-    var serializedTx = tx.serialize();
-
-    web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), function(err, hash) {
-        if (!err){
-            res.contentType('application/json');
-            res.end(JSON.stringify(hash));
-        }
-        else{
-            //console.log(err);
-        }
-        }
-    );
-}
-//Buy token of the contract address provided above by "NoEther" ether form "FromAddress".
-function BuyTokenRefer(res,NoEther,FromAddress,PrivateKey,ParentAddress,Percent){
-    web3.eth.defaultAccount = FromAddress;
-    var count = web3.eth.getTransactionCount(web3.eth.defaultAccount);
-    var data = contract.buyrefer.getData(ParentAddress,Percent);
-    var gasPrice = web3.eth.gasPrice;
-    var gasLimit = 90000;
-
-    var rawTransaction = {
-        "from": FromAddress,
-        "nonce": web3.toHex(count),
-        "gasPrice": web3.toHex(gasPrice),
-        "gasLimit": web3.toHex(gasLimit),
-        "to": contractAddress,
-        "value": web3.toHex(NoEther),
-        "data": data,
-        "chainId": 0x03
-    };
-
-    var privKey = new Buffer(PrivateKey, 'hex');
-    var tx = new Tx(rawTransaction);
-
-    tx.sign(privKey);
-    var serializedTx = tx.serialize();
-
-    web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), function(err, hash) {
-        if (!err){
-            res.contentType('application/json');
-            res.end(JSON.stringify(hash));
-        }
-        else{
-            //console.log(err);
-        }
-        }
-    );
-}
 if (module === require.main) {
     // Start the server
     var server = app.listen(process.env.PORT || 8085, function () {
